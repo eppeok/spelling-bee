@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Spelling Bee 🐝</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#06090f;--card:#0c1220;--border:#1a2840;--text:#e2e8f0;--dim:#64748b;--sub:#94a3b8;--blue:#3b82f6;--green:#22c55e;--yellow:#f59e0b;--red:#ef4444;--purple:#a78bfa}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) var(--delay,0s) infinite alternate}
+@keyframes twinkle{from{opacity:.1}to{opacity:.6}}
+nav{position:sticky;top:0;z-index:100;background:#06090fee;backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:10px;height:56px}
+.nav-back{font-size:.8rem;font-weight:700;color:var(--dim);text-decoration:none;padding:5px 12px;border:1px solid var(--border);border-radius:20px;transition:color .2s}
+.nav-back:hover{color:var(--text)}
+.nav-title{font-size:1.1rem;font-weight:900;background:linear-gradient(90deg,var(--yellow),#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-right:auto}
+.screen{display:none;position:relative;z-index:1;max-width:640px;margin:0 auto;padding:36px 20px}
+.screen.active{display:block}
+h1{font-size:2rem;font-weight:900;margin-bottom:6px}
+p.sub{color:var(--sub);margin-bottom:28px;line-height:1.6}
+.label{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--yellow);margin-bottom:8px}
+textarea,input[type=text]{background:#111827;border:1px solid var(--border);color:#fff;border-radius:10px;padding:10px 14px;font-size:.9rem;width:100%;outline:none;transition:border-color .2s;font-family:inherit}
+textarea{resize:vertical;min-height:100px}
+input:focus,textarea:focus{border-color:var(--blue)}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.pill{padding:8px 18px;border-radius:50px;border:2px solid var(--border);background:transparent;color:var(--sub);font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s}
+.pill:hover{border-color:var(--yellow);color:var(--text)}
+.pill.active{border-color:var(--yellow);background:#2a1f00;color:var(--yellow)}
+.big-btn{width:100%;padding:14px;border-radius:14px;border:none;font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;margin-top:8px}
+.big-btn:hover{transform:translateY(-2px);filter:brightness(1.1)}
+.big-btn.yellow{background:linear-gradient(135deg,var(--yellow),#f97316);color:#000}
+.big-btn.ghost{background:var(--card);border:1px solid var(--border);color:var(--text)}
+/* Game */
+.bee-card{background:var(--card);border:2px solid var(--border);border-radius:24px;padding:36px;text-align:center;margin-bottom:24px}
+.bee-word-num{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--dim);margin-bottom:16px}
+.speak-btn{font-size:4rem;background:none;border:none;cursor:pointer;transition:transform .15s;display:block;margin:0 auto 16px;filter:drop-shadow(0 0 8px #f59e0b44)}
+.speak-btn:hover{transform:scale(1.1)}
+.speak-btn:active{transform:scale(.95)}
+.speak-hint{font-size:.82rem;color:var(--dim);margin-bottom:20px}
+.answer-input{width:100%;text-align:center;font-size:2rem;font-weight:700;background:#111827;border:2px solid var(--border);color:#fff;border-radius:14px;padding:14px;outline:none;transition:all .3s;letter-spacing:3px}
+.answer-input:focus{border-color:var(--yellow)}
+.answer-input.correct{border-color:var(--green);background:#0a1f10;color:var(--green)}
+.answer-input.wrong{border-color:var(--red);background:#1f0a0a;color:var(--red)}
+.submit-row{display:flex;gap:10px;margin-top:12px}
+.submit-btn{flex:2;padding:12px;border-radius:12px;border:none;background:var(--yellow);color:#000;font-weight:800;font-size:1rem;cursor:pointer;transition:all .2s}
+.submit-btn:hover{filter:brightness(1.1)}
+.skip-btn{flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--dim);font-weight:700;cursor:pointer;transition:all .2s}
+.skip-btn:hover{color:var(--text);border-color:var(--text)}
+.feedback{font-size:1.1rem;font-weight:700;min-height:28px;text-align:center;margin-top:12px}
+.feedback.correct{color:var(--green)}
+.feedback.wrong{color:var(--red)}
+.correct-reveal{font-size:1.4rem;font-weight:900;color:var(--red);letter-spacing:3px}
+.hud{display:flex;justify-content:space-around;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:24px}
+.hud-item{text-align:center}
+.hud-val{font-size:1.4rem;font-weight:900}
+.hud-lbl{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-top:2px}
+/* Results */
+.results{text-align:center}
+.trophy{font-size:5rem;animation:pop .4s ease-out;margin-bottom:12px}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+.score-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px}
+.score-val{font-size:1.8rem;font-weight:900}
+.score-lbl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-top:4px}
+.missed-list{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:left;margin-bottom:20px}
+.missed-title{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--red);margin-bottom:12px}
+.missed-item{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:.9rem}
+.missed-item:last-child{border-bottom:none}
+.missed-yours{color:var(--red)}
+.missed-correct{color:var(--green);font-weight:700}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid var(--border);border-radius:50px;padding:10px 24px;font-size:.9rem;font-weight:600;z-index:999;transition:opacity .3s;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<nav>
+  <a href="https://eppeok.github.io" class="nav-back">← All Tools</a>
+  <div class="nav-title">🐝 Spelling Bee</div>
+  <a href="https://eppeok.github.io/student-dashboard/" class="nav-back">Dashboard</a>
+</nav>
+
+<!-- SETUP -->
+<div id="screen-setup" class="screen active">
+  <h1>🐝 Spelling Bee</h1>
+  <p class="sub">Paste in a word list, hear each word spoken aloud, and type your spelling. Great for vocab tests and revision.</p>
+  <div class="label" style="margin-bottom:8px">Word List</div>
+  <p style="font-size:.8rem;color:var(--dim);margin-bottom:8px">One word per line, or separated by commas. You can also add a hint after a colon — e.g. <em>necessary: don't forget the one collar two socks</em></p>
+  <textarea id="word-list" placeholder="necessary&#10;occurrence&#10;separate&#10;definitely&#10;rhythm&#10;..."></textarea>
+  <div style="margin-top:20px" class="label">Speed</div>
+  <div class="pill-row">
+    <button class="pill" data-rate="0.7" onclick="selectRate(this)">🐢 Slow</button>
+    <button class="pill active" data-rate="0.9" onclick="selectRate(this)">Normal</button>
+    <button class="pill" data-rate="1.1" onclick="selectRate(this)">🐇 Fast</button>
+  </div>
+  <div class="label">Voice</div>
+  <select id="voice-select" style="background:#111827;border:1px solid var(--border);color:#fff;border-radius:10px;padding:10px 14px;font-size:.9rem;width:100%;outline:none;margin-bottom:20px"></select>
+  <button class="big-btn yellow" onclick="startBee()">Start Spelling Bee 🐝</button>
+  <div id="no-speech-warn" style="display:none;margin-top:12px;padding:12px;background:#1f1000;border:1px solid #b45309;border-radius:10px;font-size:.82rem;color:#fbbf24">⚠️ Your browser doesn't support text-to-speech. Words will be shown as text instead.</div>
+</div>
+
+<!-- GAME -->
+<div id="screen-game" class="screen">
+  <div class="hud">
+    <div class="hud-item"><div class="hud-val" id="hud-num">1/10</div><div class="hud-lbl">Word</div></div>
+    <div class="hud-item"><div class="hud-val" id="hud-correct" style="color:var(--green)">0</div><div class="hud-lbl">Correct</div></div>
+    <div class="hud-item"><div class="hud-val" id="hud-wrong" style="color:var(--red)">0</div><div class="hud-lbl">Wrong</div></div>
+    <div class="hud-item"><div class="hud-val" id="hud-score" style="color:var(--yellow)">0</div><div class="hud-lbl">Score</div></div>
+  </div>
+  <div class="bee-card">
+    <div class="bee-word-num" id="word-num">Word 1 of 10</div>
+    <button class="speak-btn" id="speak-btn" onclick="speakCurrent()" title="Click to hear the word again">🔊</button>
+    <div class="speak-hint" id="speak-hint">Click 🔊 to hear the word</div>
+    <div id="word-reveal" style="display:none;font-size:1.6rem;font-weight:900;letter-spacing:4px;color:var(--yellow);margin-bottom:12px"></div>
+    <div id="hint-text" style="font-size:.82rem;color:var(--dim);margin-bottom:12px;min-height:18px;font-style:italic"></div>
+    <input type="text" id="spell-input" class="answer-input" placeholder="Type your spelling..." autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="handleKey(event)"/>
+    <div class="submit-row">
+      <button class="submit-btn" onclick="submitSpelling()">Submit ✓</button>
+      <button class="skip-btn" onclick="skipWord()">Skip →</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="screen-results" class="screen">
+  <div class="results">
+    <div class="trophy" id="trophy">🏆</div>
+    <h2 style="font-size:1.8rem;font-weight:900;margin-bottom:6px" id="result-title">Well done!</h2>
+    <p style="color:var(--sub);margin-bottom:4px" id="result-sub"></p>
+    <div class="score-grid">
+      <div class="score-card"><div class="score-val" id="res-correct" style="color:var(--green)">0</div><div class="score-lbl">Correct</div></div>
+      <div class="score-card"><div class="score-val" id="res-wrong" style="color:var(--red)">0</div><div class="score-lbl">Wrong</div></div>
+      <div class="score-card"><div class="score-val" id="res-pct" style="color:var(--yellow)">0%</div><div class="score-lbl">Score</div></div>
+    </div>
+    <div class="missed-list" id="missed-list" style="display:none">
+      <div class="missed-title">❌ Words to Practise</div>
+      <div id="missed-items"></div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="big-btn yellow" style="flex:1" onclick="playAgain()">Try Again ↩</button>
+      <button class="big-btn ghost" style="flex:1" onclick="showScreen('setup')">New List</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" style="opacity:0"></div>
+
+<script>
+(()=>{const c=document.getElementById('stars');for(let i=0;i<80;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2+1;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--delay:${Math.random()*4}s;opacity:.3`;c.appendChild(s);}})();
+
+let words=[], current=0, correct=0, wrong=0, missed=[], speechRate=0.9, voices=[], selectedVoice=null, hasSpeech=false, canSubmit=true;
+
+// Speech setup
+function initSpeech(){
+  if(!('speechSynthesis' in window)){ document.getElementById('no-speech-warn').style.display='block'; return; }
+  hasSpeech=true;
+  const load=()=>{
+    voices=speechSynthesis.getVoices().filter(v=>v.lang.startsWith('en'));
+    const sel=document.getElementById('voice-select');
+    sel.innerHTML=voices.map((v,i)=>`<option value="${i}">${v.name} (${v.lang})</option>`).join('');
+    if(voices.length){ selectedVoice=voices[0]; sel.value=0; }
+  };
+  speechSynthesis.onvoiceschanged=load;
+  load();
+}
+
+function selectRate(el){
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  speechRate=parseFloat(el.dataset.rate);
+}
+
+document.getElementById('voice-select').addEventListener('change',function(){ selectedVoice=voices[this.value]||null; });
+
+function speak(text){
+  if(!hasSpeech){ return; }
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.rate=speechRate; u.pitch=1;
+    if(selectedVoice) u.voice=selectedVoice;
+    speechSynthesis.speak(u);
+  }catch(e){ console.warn('Speech error',e); }
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+function toast(msg,ms=2500){const el=document.getElementById('toast');el.textContent=msg;el.style.opacity='1';setTimeout(()=>el.style.opacity='0',ms);}
+
+function parseWords(raw){
+  return raw.split(/[\n,]+/).map(w=>w.trim()).filter(w=>w).map(w=>{
+    const [word,...rest]=w.split(':');
+    return {word:word.trim().toLowerCase(), hint:rest.join(':').trim()||''};
+  });
+}
+
+function startBee(){
+  const raw=document.getElementById('word-list').value;
+  const parsed=parseWords(raw);
+  if(!parsed.length){ toast('Add some words first!'); return; }
+  words=[...parsed].sort(()=>Math.random()-.5);
+  current=0; correct=0; wrong=0; missed=[];
+  showScreen('game');
+  showWord();
+}
+
+function showWord(){
+  const w=words[current];
+  document.getElementById('hud-num').textContent=`${current+1}/${words.length}`;
+  document.getElementById('hud-correct').textContent=correct;
+  document.getElementById('hud-wrong').textContent=wrong;
+  document.getElementById('hud-score').textContent=Math.round(correct/Math.max(current,1)*100)+'%';
+  document.getElementById('word-num').textContent=`Word ${current+1} of ${words.length}`;
+  document.getElementById('word-reveal').style.display='none';
+  document.getElementById('hint-text').textContent=w.hint?`Hint: ${w.hint}`:'';
+  const input=document.getElementById('spell-input');
+  input.value=''; input.className='answer-input'; input.disabled=false;
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+  canSubmit=true;
+  setTimeout(()=>{ input.focus(); speakCurrent(); }, 200);
+}
+
+function speakCurrent(){
+  const w=words[current];
+  if(hasSpeech){ speak(w.word); }
+  else { document.getElementById('word-reveal').style.display='block'; document.getElementById('word-reveal').textContent=w.word; }
+}
+
+function submitSpelling(){
+  if(!canSubmit) return;
+  const input=document.getElementById('spell-input');
+  const typed=input.value.trim().toLowerCase();
+  if(!typed){ toast('Type your spelling first'); return; }
+  const w=words[current];
+  canSubmit=false; input.disabled=true;
+  if(typed===w.word){
+    input.className='answer-input correct';
+    document.getElementById('feedback').className='feedback correct';
+    const msgs=['✅ Correct!','🎉 Spot on!','⭐ Perfect!','🔥 Nailed it!'];
+    document.getElementById('feedback').textContent=msgs[Math.floor(Math.random()*msgs.length)];
+    correct++;
+  } else {
+    input.className='answer-input wrong';
+    document.getElementById('feedback').className='feedback wrong';
+    document.getElementById('feedback').innerHTML=`❌ It's <span class="correct-reveal">${w.word}</span>`;
+    missed.push({word:w.word,typed});
+    wrong++;
+    // Speak correct spelling
+    if(hasSpeech) setTimeout(()=>speak(w.word),500);
+  }
+  setTimeout(nextWord, 1400);
+}
+
+function skipWord(){
+  if(!canSubmit) return;
+  missed.push({word:words[current].word,typed:'(skipped)'});
+  wrong++;
+  nextWord();
+}
+
+function nextWord(){
+  current++;
+  if(current>=words.length){ showResults(); return; }
+  showWord();
+}
+
+function handleKey(e){ if(e.key==='Enter') submitSpelling(); }
+
+function showResults(){
+  const pct=Math.round(correct/words.length*100);
+  document.getElementById('trophy').textContent=pct>=90?'🏆':pct>=70?'🥈':'🎯';
+  document.getElementById('result-title').textContent=pct>=90?'Outstanding! 🔥':pct>=70?'Great work! 💪':pct>=50?'Keep practising!':'Don\'t give up!';
+  document.getElementById('result-sub').textContent=`${correct}/${words.length} correct · ${pct}%`;
+  document.getElementById('res-correct').textContent=correct;
+  document.getElementById('res-wrong').textContent=wrong;
+  document.getElementById('res-pct').textContent=pct+'%';
+  const missedEl=document.getElementById('missed-list');
+  if(missed.length){
+    missedEl.style.display='block';
+    document.getElementById('missed-items').innerHTML=missed.map(m=>`
+      <div class="missed-item">
+        <span class="missed-yours">${m.typed}</span>
+        <span>→</span>
+        <span class="missed-correct">${m.word}</span>
+      </div>`).join('');
+  } else { missedEl.style.display='none'; }
+  try{speechSynthesis.cancel();}catch(e){}
+  showScreen('results');
+}
+
+function playAgain(){ startBee(); }
+
+initSpeech();
+</script>
+</body>
+</html>
