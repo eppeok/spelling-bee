@@ -88,7 +88,7 @@ input:focus,textarea:focus{border-color:var(--blue)}
   <p style="font-size:.8rem;color:var(--dim);margin-bottom:8px">One word per line, or separated by commas. You can also add a hint after a colon — e.g. <em>necessary: don't forget the one collar two socks</em></p>
   <textarea id="word-list" placeholder="necessary&#10;occurrence&#10;separate&#10;definitely&#10;rhythm&#10;..."></textarea>
   <div style="margin-top:20px" class="label">Speed</div>
-  <div class="pill-row">
+  <div class="pill-row" id="rate-row">
     <button class="pill" data-rate="0.7" onclick="selectRate(this)">🐢 Slow</button>
     <button class="pill active" data-rate="0.9" onclick="selectRate(this)">Normal</button>
     <button class="pill" data-rate="1.1" onclick="selectRate(this)">🐇 Fast</button>
@@ -166,7 +166,7 @@ function initSpeech(){
 }
 
 function selectRate(el){
-  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#rate-row .pill').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   speechRate=parseFloat(el.dataset.rate);
 }
@@ -246,7 +246,14 @@ function submitSpelling(){
   } else {
     input.className='answer-input wrong';
     document.getElementById('feedback').className='feedback wrong';
-    document.getElementById('feedback').innerHTML=`❌ It's <span class="correct-reveal">${w.word}</span>`;
+    const fbEl=document.getElementById('feedback');
+    fbEl.textContent='';
+    const wrongMsg=document.createTextNode("❌ It's ");
+    const revSpan=document.createElement('span');
+    revSpan.className='correct-reveal';
+    revSpan.textContent=w.word;
+    fbEl.appendChild(wrongMsg);
+    fbEl.appendChild(revSpan);
     missed.push({word:w.word,typed});
     wrong++;
     // Speak correct spelling
